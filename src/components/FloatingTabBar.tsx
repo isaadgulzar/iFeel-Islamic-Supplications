@@ -7,6 +7,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "./ThemedText";
+import { useTheme } from "../hooks/useTheme";
 import { Spacing, BorderRadius } from "../constants/theme";
 
 const springConfig = {
@@ -24,6 +25,7 @@ interface TabItemProps {
 }
 
 function TabItem({ label, icon, isFocused, onPress }: TabItemProps) {
+  const { theme } = useTheme();
   const scale = useRef(new Animated.Value(1)).current;
 
   const animatedStyle = {
@@ -54,13 +56,15 @@ function TabItem({ label, icon, isFocused, onPress }: TabItemProps) {
       <Feather
         name={icon as any}
         size={20}
-        color={isFocused ? "#14B8A6" : "rgba(255, 255, 255, 0.5)"}
+        color={isFocused ? theme.tabIconSelected : theme.tabIconDefault}
       />
-      {isFocused ? (
-        <ThemedText style={styles.tabLabel}>
-          {label}
-        </ThemedText>
-      ) : null}
+      <ThemedText style={[
+        styles.tabLabel,
+        { color: isFocused ? theme.tabIconSelected : theme.tabIconDefault },
+        isFocused && { fontWeight: "600" }
+      ]}>
+        {label}
+      </ThemedText>
     </>
   );
 
@@ -75,9 +79,9 @@ function TabItem({ label, icon, isFocused, onPress }: TabItemProps) {
           <BlurView
             intensity={40}
             tint="dark"
-            style={styles.activeTabBlur}
+            style={[styles.activeTabBlur, { borderColor: `${theme.tabIconSelected}4D` }]}
           >
-            <View style={styles.activeTabInner}>
+            <View style={[styles.activeTabInner, { backgroundColor: theme.tabBarActive }]}>
               {content}
             </View>
           </BlurView>
@@ -94,7 +98,10 @@ function TabItem({ label, icon, isFocused, onPress }: TabItemProps) {
     >
       <Animated.View style={[
         styles.tabItem,
-        isFocused && styles.tabItemActiveFallback,
+        isFocused && [styles.tabItemActiveFallback, {
+          backgroundColor: theme.tabBarActive,
+          borderColor: `${theme.tabIconSelected}4D`
+        }],
         animatedStyle,
       ]}>
         {content}
@@ -111,6 +118,7 @@ const TAB_ICONS: Record<string, string> = {
 };
 
 export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
 
   const content = (
@@ -151,9 +159,9 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
         <BlurView
           intensity={60}
           tint="dark"
-          style={styles.tabBar}
+          style={[styles.tabBar, { borderColor: theme.border }]}
         >
-          <View style={styles.tabBarInner}>
+          <View style={[styles.tabBarInner, { backgroundColor: theme.backgroundDefault }]}>
             {content}
           </View>
         </BlurView>
@@ -163,7 +171,10 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + Spacing.sm }]}>
-      <View style={styles.tabBarFallback}>
+      <View style={[styles.tabBarFallback, {
+        backgroundColor: theme.tabBarBg,
+        borderColor: theme.border
+      }]}>
         {content}
       </View>
     </View>
@@ -177,64 +188,55 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.xs,
   },
   tabBar: {
-    borderRadius: BorderRadius["3xl"],
+    borderRadius: BorderRadius.xl,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.15)",
   },
   tabBarInner: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
   },
   tabBarFallback: {
-    backgroundColor: "rgba(20, 35, 50, 0.95)",
-    borderRadius: BorderRadius["3xl"],
+    borderRadius: BorderRadius.xl,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
   },
   tabsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.xs,
+    gap: Spacing.md,
   },
   tabItem: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: BorderRadius["2xl"],
-    gap: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: 2,
+    flex: 1,
   },
   activeTabBlur: {
-    borderRadius: BorderRadius["2xl"],
+    borderRadius: BorderRadius.md,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(20, 184, 166, 0.3)",
   },
   activeTabInner: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-    backgroundColor: "rgba(20, 184, 166, 0.15)",
-    gap: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    gap: 2,
   },
   tabItemActiveFallback: {
-    backgroundColor: "rgba(20, 184, 166, 0.2)",
     borderWidth: 1,
-    borderColor: "rgba(20, 184, 166, 0.3)",
   },
   tabLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#14B8A6",
+    fontSize: 10,
   },
 });
