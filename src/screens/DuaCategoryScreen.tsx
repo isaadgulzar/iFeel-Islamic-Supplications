@@ -38,7 +38,7 @@ function ListHeader({ feelingName, onBack, displayOptions, onToggleDisplayOption
       <View style={styles.navRow}>
         <GlassBackButton onPress={onBack} />
         <View style={styles.titleContainer}>
-          <ThemedText style={styles.subtitle}>I am feeling</ThemedText>
+          <ThemedText style={styles.subtitle}>I Feel</ThemedText>
           <ThemedText style={styles.title}>{feelingName}</ThemedText>
         </View>
       </View>
