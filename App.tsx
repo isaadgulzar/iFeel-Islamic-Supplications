@@ -22,6 +22,7 @@ import { queryClient } from "./src/lib/query-client";
 
 import RootStackNavigator from "./src/navigation/RootStackNavigator";
 import { PreferencesProvider } from "./src/context/PreferencesContext";
+import { SearchProvider } from "./src/context/SearchContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,14 +49,16 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <PreferencesProvider>
-        <SafeAreaProvider>
-          <GestureHandlerRootView style={styles.root}>
-            <NavigationContainer>
-              <RootStackNavigator />
-            </NavigationContainer>
-            <StatusBar style="light" />
-          </GestureHandlerRootView>
-        </SafeAreaProvider>
+        <SearchProvider>
+          <SafeAreaProvider>
+            <GestureHandlerRootView style={styles.root}>
+              <NavigationContainer>
+                <RootStackNavigator />
+              </NavigationContainer>
+              <StatusBar style="light" />
+            </GestureHandlerRootView>
+          </SafeAreaProvider>
+        </SearchProvider>
       </PreferencesProvider>
     </QueryClientProvider>
   );
