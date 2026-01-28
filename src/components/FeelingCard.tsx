@@ -1,11 +1,5 @@
-import React from "react";
-import { StyleSheet, Pressable, View, Platform } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  WithSpringConfig,
-} from "react-native-reanimated";
+import React, { useRef } from "react";
+import { StyleSheet, Pressable, View, Platform, Animated } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
@@ -19,27 +13,34 @@ interface FeelingCardProps {
   onPress: () => void;
 }
 
-const springConfig: WithSpringConfig = {
+const springConfig = {
   damping: 15,
   mass: 0.4,
   stiffness: 150,
+  useNativeDriver: true,
 };
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function FeelingCard({ feeling, onPress }: FeelingCardProps) {
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animatedStyle = {
+    transform: [{ scale }],
+  };
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.92, springConfig);
+    Animated.spring(scale, {
+      toValue: 0.92,
+      ...springConfig,
+    }).start();
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, springConfig);
+    Animated.spring(scale, {
+      toValue: 1,
+      ...springConfig,
+    }).start();
   };
 
   const handlePress = () => {

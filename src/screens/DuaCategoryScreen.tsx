@@ -1,9 +1,8 @@
-import React, { useMemo } from "react";
-import { FlatList, View, StyleSheet, ScrollView } from "react-native";
+import React, { useMemo, useRef, useEffect } from "react";
+import { FlatList, View, StyleSheet, ScrollView, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import Animated, { FadeInUp, FadeInDown } from "react-native-reanimated";
 
 import { DuaCard } from "../components/DuaCard";
 import { DisplayOptionChip } from "../components/DisplayOptionChip";
@@ -44,11 +43,32 @@ export default function DuaCategoryScreen() {
     navigation.goBack();
   };
 
-  const renderItem = ({ item, index }: { item: typeof duas[0]; index: number }) => (
-    <Animated.View entering={FadeInUp.delay(index * 40).duration(400).springify()}>
-      <DuaCard dua={item} index={index} onPress={() => handleDuaPress(item.id)} />
-    </Animated.View>
-  );
+  const renderItem = ({ item, index }: { item: typeof duas[0]; index: number }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const translateY = useRef(new Animated.Value(20)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          delay: index * 40,
+          useNativeDriver: true,
+        }),
+        Animated.spring(translateY, {
+          toValue: 0,
+          delay: index * 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    return (
+      <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
+        <DuaCard dua={item} index={index} onPress={() => handleDuaPress(item.id)} />
+      </Animated.View>
+    );
+  };
 
   return (
     <MeshGradientBackground>
@@ -65,32 +85,52 @@ export default function DuaCategoryScreen() {
           },
         ]}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <Animated.View entering={FadeInDown.duration(400)} style={styles.navRow}>
-              <GlassBackButton onPress={handleBack} />
-              <View style={styles.titleContainer}>
-                <ThemedText style={styles.subtitle}>I am feeling</ThemedText>
-                <ThemedText style={styles.title}>{feeling?.name || "..."}</ThemedText>
-              </View>
-            </Animated.View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipsContainer}
-            >
-              {DISPLAY_OPTIONS.map((option) => (
-                <DisplayOptionChip
-                  key={option.key}
-                  option={option.key}
-                  label={option.label}
-                  isActive={preferences.displayOptions.includes(option.key)}
-                  onToggle={() => toggleDisplayOption(option.key)}
-                />
-              ))}
-            </ScrollView>
-          </View>
-        }
+        ListHeaderComponent={() => {
+          const fadeAnim = useRef(new Animated.Value(0)).current;
+          const translateY = useRef(new Animated.Value(20)).current;
+
+          useEffect(() => {
+            Animated.parallel([
+              Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 400,
+                useNativeDriver: true,
+              }),
+              Animated.timing(translateY, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }, []);
+
+          return (
+            <View style={styles.header}>
+              <Animated.View style={[styles.navRow, { opacity: fadeAnim, transform: [{ translateY }] }]}>
+                <GlassBackButton onPress={handleBack} />
+                <View style={styles.titleContainer}>
+                  <ThemedText style={styles.subtitle}>I am feeling</ThemedText>
+                  <ThemedText style={styles.title}>{feeling?.name || "..."}</ThemedText>
+                </View>
+              </Animated.View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsContainer}
+              >
+                {DISPLAY_OPTIONS.map((option) => (
+                  <DisplayOptionChip
+                    key={option.key}
+                    option={option.key}
+                    label={option.label}
+                    isActive={preferences.displayOptions.includes(option.key)}
+                    onToggle={() => toggleDisplayOption(option.key)}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          );
+        }}
         ListEmptyComponent={
           <EmptyState
             image={require("../../assets/icon.png")}

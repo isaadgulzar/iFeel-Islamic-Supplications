@@ -1,11 +1,10 @@
-import React from "react";
-import { ScrollView, View, StyleSheet, Platform } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { ScrollView, View, StyleSheet, Platform, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 
 import { ThemedText } from "../components/ThemedText";
 import { DisplayOptionChip } from "../components/DisplayOptionChip";
@@ -63,9 +62,28 @@ export default function DuaDetailScreen() {
   const showTranslation = preferences.displayOptions.includes("translation");
 
   const renderGlassSection = (children: React.ReactNode, delay: number) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const translateY = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          delay,
+          useNativeDriver: true,
+        }),
+        Animated.spring(translateY, {
+          toValue: 0,
+          delay,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
     if (Platform.OS === "ios") {
       return (
-        <Animated.View entering={FadeInDown.delay(delay).duration(500).springify()}>
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
           <BlurView
             intensity={15}
             tint="dark"
@@ -80,8 +98,7 @@ export default function DuaDetailScreen() {
     }
     return (
       <Animated.View
-        entering={FadeInDown.delay(delay).duration(500).springify()}
-        style={styles.glassSectionFallback}
+        style={[styles.glassSectionFallback, { opacity: fadeAnim, transform: [{ translateY }] }]}
       >
         {children}
       </Animated.View>
@@ -89,9 +106,19 @@ export default function DuaDetailScreen() {
   };
 
   const renderGlassButton = (onPress: () => void, icon: string, isActive?: boolean) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    }, []);
+
     if (Platform.OS === "ios") {
       return (
-        <Animated.View entering={FadeIn.duration(400)}>
+        <Animated.View style={{ opacity: fadeAnim }}>
           <BlurView intensity={15} tint="dark" style={styles.navButtonBlur}>
             <View
               style={styles.navButtonInner}
@@ -109,8 +136,7 @@ export default function DuaDetailScreen() {
     }
     return (
       <Animated.View
-        entering={FadeIn.duration(400)}
-        style={styles.navButtonFallback}
+        style={[styles.navButtonFallback, { opacity: fadeAnim }]}
         onTouchEnd={onPress}
       >
         <Feather
@@ -140,17 +166,32 @@ export default function DuaDetailScreen() {
           {renderGlassButton(handleFavorite, "heart", favorite)}
         </View>
 
-        <Animated.View entering={FadeIn.delay(100).duration(400)} style={styles.chipsRow}>
-          {DISPLAY_OPTIONS.map((option) => (
-            <DisplayOptionChip
-              key={option.key}
-              option={option.key}
-              label={option.label}
-              isActive={preferences.displayOptions.includes(option.key)}
-              onToggle={() => toggleDisplayOption(option.key)}
-            />
-          ))}
-        </Animated.View>
+        {(() => {
+          const fadeAnim = useRef(new Animated.Value(0)).current;
+
+          useEffect(() => {
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 400,
+              delay: 100,
+              useNativeDriver: true,
+            }).start();
+          }, []);
+
+          return (
+            <Animated.View style={[styles.chipsRow, { opacity: fadeAnim }]}>
+              {DISPLAY_OPTIONS.map((option) => (
+                <DisplayOptionChip
+                  key={option.key}
+                  option={option.key}
+                  label={option.label}
+                  isActive={preferences.displayOptions.includes(option.key)}
+                  onToggle={() => toggleDisplayOption(option.key)}
+                />
+              ))}
+            </Animated.View>
+          );
+        })()}
 
         {showArabic
           ? renderGlassSection(
@@ -180,19 +221,39 @@ export default function DuaDetailScreen() {
             )
           : null}
 
-        {dua.reference ? (
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(500).springify()}
-            style={styles.referenceSection}
-          >
-            <View style={styles.referenceBadge}>
-              <ThemedText style={styles.referenceLabel}>Reference</ThemedText>
-              <ThemedText style={styles.referenceText}>
-                {dua.reference}
-              </ThemedText>
-            </View>
-          </Animated.View>
-        ) : null}
+        {dua.reference ? (() => {
+          const fadeAnim = useRef(new Animated.Value(0)).current;
+          const translateY = useRef(new Animated.Value(30)).current;
+
+          useEffect(() => {
+            Animated.parallel([
+              Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 500,
+                delay: 400,
+                useNativeDriver: true,
+              }),
+              Animated.spring(translateY, {
+                toValue: 0,
+                delay: 400,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }, []);
+
+          return (
+            <Animated.View
+              style={[styles.referenceSection, { opacity: fadeAnim, transform: [{ translateY }] }]}
+            >
+              <View style={styles.referenceBadge}>
+                <ThemedText style={styles.referenceLabel}>Reference</ThemedText>
+                <ThemedText style={styles.referenceText}>
+                  {dua.reference}
+                </ThemedText>
+              </View>
+            </Animated.View>
+          );
+        })() : null}
       </ScrollView>
     </MeshGradientBackground>
   );

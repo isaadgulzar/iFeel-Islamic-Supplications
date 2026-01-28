@@ -1,24 +1,19 @@
-import React from "react";
-import { View, Pressable, StyleSheet, Platform } from "react-native";
+import React, { useRef } from "react";
+import { View, Pressable, StyleSheet, Platform, Animated } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Animated, {
-  useAnimatedStyle,
-  withSpring,
-  useSharedValue,
-  WithSpringConfig,
-} from "react-native-reanimated";
 
 import { ThemedText } from "./ThemedText";
 import { Spacing, BorderRadius } from "../constants/theme";
 
-const springConfig: WithSpringConfig = {
+const springConfig = {
   damping: 15,
   mass: 0.5,
   stiffness: 120,
+  useNativeDriver: true,
 };
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -31,18 +26,24 @@ interface TabItemProps {
 }
 
 function TabItem({ label, icon, isFocused, onPress }: TabItemProps) {
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animatedStyle = {
+    transform: [{ scale }],
+  };
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.9, springConfig);
+    Animated.spring(scale, {
+      toValue: 0.9,
+      ...springConfig,
+    }).start();
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, springConfig);
+    Animated.spring(scale, {
+      toValue: 1,
+      ...springConfig,
+    }).start();
   };
 
   const handlePress = () => {

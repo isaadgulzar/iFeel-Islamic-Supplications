@@ -1,10 +1,5 @@
-import React from "react";
-import { StyleSheet, Pressable, ViewStyle, TextStyle } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import React, { useRef } from "react";
+import { StyleSheet, Pressable, ViewStyle, TextStyle, Animated } from "react-native";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "./ThemedText";
@@ -31,20 +26,26 @@ export function Button({
   textStyle,
 }: ButtonProps) {
   const { theme } = useTheme();
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animatedStyle = {
+    transform: [{ scale }],
+  };
 
   const handlePressIn = () => {
     if (!disabled) {
-      scale.value = withSpring(0.96);
+      Animated.spring(scale, {
+        toValue: 0.96,
+        useNativeDriver: true,
+      }).start();
     }
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1);
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePress = () => {

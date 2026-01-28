@@ -1,17 +1,11 @@
-import React from "react";
-import { FlatList, View, StyleSheet, Pressable, Platform } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { FlatList, View, StyleSheet, Pressable, Platform, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import Animated, {
-  FadeInUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
 
 import { ThemedText } from "../components/ThemedText";
 import { MeshGradientBackground } from "../components/MeshGradientBackground";
@@ -35,21 +29,45 @@ function CollectionRow({
   onPress: () => void;
 }) {
   const { theme } = useTheme();
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
 
   const colorKey = item.colorKey as keyof typeof FeelingColors;
   const feelingStyle = FeelingColors[colorKey] || { bg: theme.cardGlass, icon: theme.primary };
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 30,
+        useNativeDriver: true,
+      }),
+      Animated.spring(translateY, {
+        toValue: 0,
+        delay: index * 30,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const animatedStyle = {
+    transform: [{ scale }],
+  };
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.97);
+    Animated.spring(scale, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1);
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
   };
 
   const content = (
@@ -71,7 +89,7 @@ function CollectionRow({
 
   if (Platform.OS === "ios") {
     return (
-      <Animated.View entering={FadeInUp.delay(index * 30).duration(400).springify()}>
+      <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
         <AnimatedPressable
           onPress={onPress}
           onPressIn={handlePressIn}
@@ -92,7 +110,7 @@ function CollectionRow({
   }
 
   return (
-    <Animated.View entering={FadeInUp.delay(index * 30).duration(400).springify()}>
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
       <AnimatedPressable
         onPress={onPress}
         onPressIn={handlePressIn}
@@ -144,12 +162,32 @@ export default function CollectionsScreen() {
           },
         ]}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <Animated.View entering={FadeInUp.duration(400)} style={styles.header}>
-            <ThemedText style={styles.title}>Collections</ThemedText>
-            <ThemedText style={styles.subtitle}>Browse duas by feeling</ThemedText>
-          </Animated.View>
-        }
+        ListHeaderComponent={() => {
+          const fadeAnim = useRef(new Animated.Value(0)).current;
+          const translateY = useRef(new Animated.Value(20)).current;
+
+          useEffect(() => {
+            Animated.parallel([
+              Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 400,
+                useNativeDriver: true,
+              }),
+              Animated.timing(translateY, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }, []);
+
+          return (
+            <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY }] }]}>
+              <ThemedText style={styles.title}>Collections</ThemedText>
+              <ThemedText style={styles.subtitle}>Browse duas by feeling</ThemedText>
+            </Animated.View>
+          );
+        }}
         ListEmptyComponent={
           <EmptyState
             image={require("../../assets/icon.png")}

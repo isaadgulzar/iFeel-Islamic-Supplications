@@ -1,11 +1,5 @@
-import React from "react";
-import { StyleSheet, Pressable, Platform } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  WithSpringConfig,
-} from "react-native-reanimated";
+import React, { useRef } from "react";
+import { StyleSheet, Pressable, Platform, Animated } from "react-native";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 
@@ -21,10 +15,11 @@ interface DisplayOptionChipProps {
   onToggle: () => void;
 }
 
-const springConfig: WithSpringConfig = {
+const springConfig = {
   damping: 15,
   mass: 0.3,
   stiffness: 150,
+  useNativeDriver: true,
 };
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -36,18 +31,24 @@ export function DisplayOptionChip({
   onToggle,
 }: DisplayOptionChipProps) {
   const { theme } = useTheme();
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animatedStyle = {
+    transform: [{ scale }],
+  };
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.92, springConfig);
+    Animated.spring(scale, {
+      toValue: 0.92,
+      ...springConfig,
+    }).start();
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, springConfig);
+    Animated.spring(scale, {
+      toValue: 1,
+      ...springConfig,
+    }).start();
   };
 
   const handlePress = () => {

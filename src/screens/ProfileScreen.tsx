@@ -1,9 +1,8 @@
-import React from "react";
-import { View, StyleSheet, Linking, Image, Platform, Pressable, ScrollView } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, StyleSheet, Linking, Image, Platform, Pressable, ScrollView, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { Feather } from "@expo/vector-icons";
-import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { ThemedText } from "../components/ThemedText";
 import { MeshGradientBackground } from "../components/MeshGradientBackground";
@@ -24,6 +23,24 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { preferences, setLanguage, toggleDisplayOption } = usePreferences();
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const openIslamestic = () => {
     Linking.openURL("https://www.islamestic.com/i-am-feeling/");
@@ -60,11 +77,11 @@ export default function ProfileScreen() {
           },
         ]}
       >
-        <Animated.View entering={FadeInUp.duration(400)} style={styles.header}>
+        <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY }] }]}>
           <ThemedText style={styles.title}>Settings</ThemedText>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.duration(400)} style={styles.logoSection}>
+        <Animated.View style={[styles.logoSection, { opacity: fadeAnim, transform: [{ translateY }] }]}>
           <View style={[styles.logoContainer, { backgroundColor: theme.primary }]}>
             <Image
               source={require("../../assets/icon.png")}
@@ -76,7 +93,7 @@ export default function ProfileScreen() {
           <ThemedText style={styles.tagline}>Your spiritual companion</ThemedText>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(100).duration(400)}>
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
           <ThemedText style={styles.sectionTitle}>Language</ThemedText>
           {renderGlassSection(
             <LanguageSelector
@@ -87,7 +104,7 @@ export default function ProfileScreen() {
           )}
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
           <ThemedText style={styles.sectionTitle}>Display Preferences</ThemedText>
           {renderGlassSection(
             <>
@@ -107,7 +124,7 @@ export default function ProfileScreen() {
           )}
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(300).duration(400)}>
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
           <ThemedText style={styles.sectionTitle}>About</ThemedText>
           {renderGlassSection(
             <Pressable onPress={openIslamestic} style={styles.linkRow}>
@@ -123,7 +140,7 @@ export default function ProfileScreen() {
           )}
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(400).duration(400)} style={styles.footer}>
+        <Animated.View style={[styles.footer, { opacity: fadeAnim, transform: [{ translateY }] }]}>
           <ThemedText style={styles.footerText}>iFeel v1.0.0</ThemedText>
           <ThemedText style={styles.footerText}>Made with love for the Ummah</ThemedText>
         </Animated.View>

@@ -1,9 +1,8 @@
-import React from "react";
-import { FlatList, View, StyleSheet, Image } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { FlatList, View, StyleSheet, Image, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import Animated, { FadeInDown } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { FeelingCard } from "../components/FeelingCard";
@@ -25,14 +24,34 @@ export default function FeelingsScreen() {
     navigation.navigate("DuaCategory", { feelingId });
   };
 
-  const renderItem = ({ item, index }: { item: typeof FEELINGS[0]; index: number }) => (
-    <Animated.View
-      entering={FadeInDown.delay(index * 20).duration(400).springify()}
-      style={styles.cardWrapper}
-    >
-      <FeelingCard feeling={item} onPress={() => handleFeelingPress(item.id)} />
-    </Animated.View>
-  );
+  const renderItem = ({ item, index }: { item: typeof FEELINGS[0]; index: number }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const translateY = useRef(new Animated.Value(20)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          delay: index * 20,
+          useNativeDriver: true,
+        }),
+        Animated.spring(translateY, {
+          toValue: 0,
+          delay: index * 20,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    return (
+      <Animated.View
+        style={[styles.cardWrapper, { opacity: fadeAnim, transform: [{ translateY }] }]}
+      >
+        <FeelingCard feeling={item} onPress={() => handleFeelingPress(item.id)} />
+      </Animated.View>
+    );
+  };
 
   return (
     <MeshGradientBackground>
@@ -50,30 +69,50 @@ export default function FeelingsScreen() {
         ]}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <Animated.View entering={FadeInDown.duration(500)} style={styles.header}>
-            <View style={styles.brandRow}>
-              <LinearGradient
-                colors={["#A855F7", "#7C3AED"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.iconGradient}
-              >
-                <Image
-                  source={require("../../assets/icon.png")}
-                  style={styles.icon}
-                  resizeMode="contain"
-                />
-              </LinearGradient>
-              <View>
-                <ThemedText style={styles.appName}>iFeel</ThemedText>
-                <ThemedText style={styles.appSubtitle}>Islamic Supplications</ThemedText>
+        ListHeaderComponent={() => {
+          const fadeAnim = useRef(new Animated.Value(0)).current;
+          const translateY = useRef(new Animated.Value(20)).current;
+
+          useEffect(() => {
+            Animated.parallel([
+              Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 500,
+                useNativeDriver: true,
+              }),
+              Animated.timing(translateY, {
+                toValue: 0,
+                duration: 500,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }, []);
+
+          return (
+            <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY }] }]}>
+              <View style={styles.brandRow}>
+                <LinearGradient
+                  colors={["#A855F7", "#7C3AED"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.iconGradient}
+                >
+                  <Image
+                    source={require("../../assets/icon.png")}
+                    style={styles.icon}
+                    resizeMode="contain"
+                  />
+                </LinearGradient>
+                <View>
+                  <ThemedText style={styles.appName}>iFeel</ThemedText>
+                  <ThemedText style={styles.appSubtitle}>Islamic Supplications</ThemedText>
+                </View>
               </View>
-            </View>
-            <ThemedText style={styles.tagline}>Healing Supplications for Every Mood</ThemedText>
-            <ThemedText style={styles.title}>How are you{"\n"}feeling today?</ThemedText>
-          </Animated.View>
-        }
+              <ThemedText style={styles.tagline}>Healing Supplications for Every Mood</ThemedText>
+              <ThemedText style={styles.title}>How are you{"\n"}feeling today?</ThemedText>
+            </Animated.View>
+          );
+        }}
         ListEmptyComponent={
           <EmptyState
             image={require("../../assets/icon.png")}

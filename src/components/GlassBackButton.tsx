@@ -1,13 +1,8 @@
-import React from "react";
-import { StyleSheet, Pressable, View, Platform } from "react-native";
+import React, { useRef } from "react";
+import { StyleSheet, Pressable, View, Platform, Animated } from "react-native";
 import { BlurView } from "expo-blur";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
 
 interface GlassBackButtonProps {
   onPress: () => void;
@@ -16,18 +11,24 @@ interface GlassBackButtonProps {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function GlassBackButton({ onPress }: GlassBackButtonProps) {
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animatedStyle = {
+    transform: [{ scale }],
+  };
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.9);
+    Animated.spring(scale, {
+      toValue: 0.9,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1);
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePress = () => {
