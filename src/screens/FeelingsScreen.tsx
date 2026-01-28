@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from "react";
-import { FlatList, View, StyleSheet, Image, Animated } from "react-native";
+import React from "react";
+import { FlatList, View, StyleSheet, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -12,8 +12,49 @@ import { ThemedText } from "../components/ThemedText";
 import { useTheme } from "../hooks/useTheme";
 import { Spacing, BorderRadius } from "../constants/theme";
 import { FEELINGS } from "../data/feelings";
+import type { Feeling } from "../types";
 
 type NavigationProp = NativeStackNavigationProp<any>;
+
+function ListHeader() {
+  return (
+    <View style={styles.header}>
+      <View style={styles.brandRow}>
+        <LinearGradient
+          colors={["#A855F7", "#7C3AED"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.iconGradient}
+        >
+          <Image
+            source={require("../../assets/icon.png")}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+        </LinearGradient>
+        <View>
+          <ThemedText style={styles.appName}>iFeel</ThemedText>
+          <ThemedText style={styles.appSubtitle}>Islamic Supplications</ThemedText>
+        </View>
+      </View>
+      <ThemedText style={styles.tagline}>Healing Supplications for Every Mood</ThemedText>
+      <ThemedText style={styles.title}>How are you{"\n"}feeling today?</ThemedText>
+    </View>
+  );
+}
+
+interface FeelingItemProps {
+  feeling: Feeling;
+  onPress: () => void;
+}
+
+function FeelingItem({ feeling, onPress }: FeelingItemProps) {
+  return (
+    <View style={styles.cardWrapper}>
+      <FeelingCard feeling={feeling} onPress={onPress} />
+    </View>
+  );
+}
 
 export default function FeelingsScreen() {
   const insets = useSafeAreaInsets();
@@ -24,34 +65,9 @@ export default function FeelingsScreen() {
     navigation.navigate("DuaCategory", { feelingId });
   };
 
-  const renderItem = ({ item, index }: { item: typeof FEELINGS[0]; index: number }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const translateY = useRef(new Animated.Value(20)).current;
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          delay: index * 20,
-          useNativeDriver: true,
-        }),
-        Animated.spring(translateY, {
-          toValue: 0,
-          delay: index * 20,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, []);
-
-    return (
-      <Animated.View
-        style={[styles.cardWrapper, { opacity: fadeAnim, transform: [{ translateY }] }]}
-      >
-        <FeelingCard feeling={item} onPress={() => handleFeelingPress(item.id)} />
-      </Animated.View>
-    );
-  };
+  const renderItem = ({ item }: { item: Feeling }) => (
+    <FeelingItem feeling={item} onPress={() => handleFeelingPress(item.id)} />
+  );
 
   return (
     <MeshGradientBackground>
@@ -69,50 +85,7 @@ export default function FeelingsScreen() {
         ]}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={() => {
-          const fadeAnim = useRef(new Animated.Value(0)).current;
-          const translateY = useRef(new Animated.Value(20)).current;
-
-          useEffect(() => {
-            Animated.parallel([
-              Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 500,
-                useNativeDriver: true,
-              }),
-              Animated.timing(translateY, {
-                toValue: 0,
-                duration: 500,
-                useNativeDriver: true,
-              }),
-            ]).start();
-          }, []);
-
-          return (
-            <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY }] }]}>
-              <View style={styles.brandRow}>
-                <LinearGradient
-                  colors={["#A855F7", "#7C3AED"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.iconGradient}
-                >
-                  <Image
-                    source={require("../../assets/icon.png")}
-                    style={styles.icon}
-                    resizeMode="contain"
-                  />
-                </LinearGradient>
-                <View>
-                  <ThemedText style={styles.appName}>iFeel</ThemedText>
-                  <ThemedText style={styles.appSubtitle}>Islamic Supplications</ThemedText>
-                </View>
-              </View>
-              <ThemedText style={styles.tagline}>Healing Supplications for Every Mood</ThemedText>
-              <ThemedText style={styles.title}>How are you{"\n"}feeling today?</ThemedText>
-            </Animated.View>
-          );
-        }}
+        ListHeaderComponent={ListHeader}
         ListEmptyComponent={
           <EmptyState
             image={require("../../assets/icon.png")}

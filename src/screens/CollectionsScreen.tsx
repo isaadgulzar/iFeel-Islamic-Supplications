@@ -129,6 +129,15 @@ function CollectionRow({
   );
 }
 
+function ListHeader() {
+  return (
+    <View style={styles.header}>
+      <ThemedText style={styles.title}>Collections</ThemedText>
+      <ThemedText style={styles.subtitle}>Browse duas by feeling</ThemedText>
+    </View>
+  );
+}
+
 export default function CollectionsScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
@@ -162,32 +171,7 @@ export default function CollectionsScreen() {
           },
         ]}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={() => {
-          const fadeAnim = useRef(new Animated.Value(0)).current;
-          const translateY = useRef(new Animated.Value(20)).current;
-
-          useEffect(() => {
-            Animated.parallel([
-              Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 400,
-                useNativeDriver: true,
-              }),
-              Animated.timing(translateY, {
-                toValue: 0,
-                duration: 400,
-                useNativeDriver: true,
-              }),
-            ]).start();
-          }, []);
-
-          return (
-            <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY }] }]}>
-              <ThemedText style={styles.title}>Collections</ThemedText>
-              <ThemedText style={styles.subtitle}>Browse duas by feeling</ThemedText>
-            </Animated.View>
-          );
-        }}
+        ListHeaderComponent={ListHeader}
         ListEmptyComponent={
           <EmptyState
             image={require("../../assets/icon.png")}

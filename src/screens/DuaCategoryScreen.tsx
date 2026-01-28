@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useEffect } from "react";
-import { FlatList, View, StyleSheet, ScrollView, Animated } from "react-native";
+import React, { useMemo } from "react";
+import { FlatList, View, StyleSheet, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -25,6 +25,52 @@ const DISPLAY_OPTIONS: { key: DisplayOption; label: string }[] = [
   { key: "translation", label: "Translation" },
 ];
 
+interface ListHeaderProps {
+  feelingName: string;
+  onBack: () => void;
+  displayOptions: DisplayOption[];
+  onToggleDisplayOption: (option: DisplayOption) => void;
+}
+
+function ListHeader({ feelingName, onBack, displayOptions, onToggleDisplayOption }: ListHeaderProps) {
+  return (
+    <View style={styles.header}>
+      <View style={styles.navRow}>
+        <GlassBackButton onPress={onBack} />
+        <View style={styles.titleContainer}>
+          <ThemedText style={styles.subtitle}>I am feeling</ThemedText>
+          <ThemedText style={styles.title}>{feelingName}</ThemedText>
+        </View>
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chipsContainer}
+      >
+        {DISPLAY_OPTIONS.map((option) => (
+          <DisplayOptionChip
+            key={option.key}
+            option={option.key}
+            label={option.label}
+            isActive={displayOptions.includes(option.key)}
+            onToggle={() => onToggleDisplayOption(option.key)}
+          />
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+interface DuaItemProps {
+  dua: ReturnType<typeof getDuasByCategory>[0];
+  index: number;
+  onPress: () => void;
+}
+
+function DuaItem({ dua, index, onPress }: DuaItemProps) {
+  return <DuaCard dua={dua} index={index} onPress={onPress} />;
+}
+
 export default function DuaCategoryScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
@@ -43,32 +89,18 @@ export default function DuaCategoryScreen() {
     navigation.goBack();
   };
 
-  const renderItem = ({ item, index }: { item: typeof duas[0]; index: number }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const translateY = useRef(new Animated.Value(20)).current;
+  const renderItem = ({ item, index }: { item: typeof duas[0]; index: number }) => (
+    <DuaItem dua={item} index={index} onPress={() => handleDuaPress(item.id)} />
+  );
 
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          delay: index * 40,
-          useNativeDriver: true,
-        }),
-        Animated.spring(translateY, {
-          toValue: 0,
-          delay: index * 40,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, []);
-
-    return (
-      <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
-        <DuaCard dua={item} index={index} onPress={() => handleDuaPress(item.id)} />
-      </Animated.View>
-    );
-  };
+  const renderHeader = () => (
+    <ListHeader
+      feelingName={feeling?.name || "..."}
+      onBack={handleBack}
+      displayOptions={preferences.displayOptions}
+      onToggleDisplayOption={toggleDisplayOption}
+    />
+  );
 
   return (
     <MeshGradientBackground>
@@ -85,52 +117,7 @@ export default function DuaCategoryScreen() {
           },
         ]}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={() => {
-          const fadeAnim = useRef(new Animated.Value(0)).current;
-          const translateY = useRef(new Animated.Value(20)).current;
-
-          useEffect(() => {
-            Animated.parallel([
-              Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 400,
-                useNativeDriver: true,
-              }),
-              Animated.timing(translateY, {
-                toValue: 0,
-                duration: 400,
-                useNativeDriver: true,
-              }),
-            ]).start();
-          }, []);
-
-          return (
-            <View style={styles.header}>
-              <Animated.View style={[styles.navRow, { opacity: fadeAnim, transform: [{ translateY }] }]}>
-                <GlassBackButton onPress={handleBack} />
-                <View style={styles.titleContainer}>
-                  <ThemedText style={styles.subtitle}>I am feeling</ThemedText>
-                  <ThemedText style={styles.title}>{feeling?.name || "..."}</ThemedText>
-                </View>
-              </Animated.View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chipsContainer}
-              >
-                {DISPLAY_OPTIONS.map((option) => (
-                  <DisplayOptionChip
-                    key={option.key}
-                    option={option.key}
-                    label={option.label}
-                    isActive={preferences.displayOptions.includes(option.key)}
-                    onToggle={() => toggleDisplayOption(option.key)}
-                  />
-                ))}
-              </ScrollView>
-            </View>
-          );
-        }}
+        ListHeaderComponent={renderHeader}
         ListEmptyComponent={
           <EmptyState
             image={require("../../assets/icon.png")}

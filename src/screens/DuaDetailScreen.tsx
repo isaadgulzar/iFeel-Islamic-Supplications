@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from "react";
-import { ScrollView, View, StyleSheet, Platform, Animated } from "react-native";
+import React from "react";
+import { ScrollView, View, StyleSheet, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
@@ -23,6 +23,56 @@ const DISPLAY_OPTIONS: { key: DisplayOption; label: string }[] = [
   { key: "transliteration", label: "Transliteration" },
   { key: "translation", label: "Translation" },
 ];
+
+interface GlassSectionProps {
+  children: React.ReactNode;
+}
+
+function GlassSection({ children }: GlassSectionProps) {
+  if (Platform.OS === "ios") {
+    return (
+      <View>
+        <BlurView intensity={15} tint="dark" style={styles.glassSection}>
+          <View style={styles.glassSectionInner}>{children}</View>
+        </BlurView>
+      </View>
+    );
+  }
+  return <View style={styles.glassSectionFallback}>{children}</View>;
+}
+
+interface GlassButtonProps {
+  onPress: () => void;
+  icon: string;
+  isActive?: boolean;
+}
+
+function GlassButton({ onPress, icon, isActive }: GlassButtonProps) {
+  if (Platform.OS === "ios") {
+    return (
+      <View>
+        <BlurView intensity={15} tint="dark" style={styles.navButtonBlur}>
+          <View style={styles.navButtonInner} onTouchEnd={onPress}>
+            <Feather
+              name={icon as any}
+              size={20}
+              color={isActive ? "#EF4444" : "rgba(255, 255, 255, 0.9)"}
+            />
+          </View>
+        </BlurView>
+      </View>
+    );
+  }
+  return (
+    <View style={styles.navButtonFallback} onTouchEnd={onPress}>
+      <Feather
+        name={icon as any}
+        size={20}
+        color={isActive ? "#EF4444" : "rgba(255, 255, 255, 0.9)"}
+      />
+    </View>
+  );
+}
 
 export default function DuaDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -61,93 +111,6 @@ export default function DuaDetailScreen() {
   const showTransliteration = preferences.displayOptions.includes("transliteration");
   const showTranslation = preferences.displayOptions.includes("translation");
 
-  const renderGlassSection = (children: React.ReactNode, delay: number) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const translateY = useRef(new Animated.Value(30)).current;
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          delay,
-          useNativeDriver: true,
-        }),
-        Animated.spring(translateY, {
-          toValue: 0,
-          delay,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, []);
-
-    if (Platform.OS === "ios") {
-      return (
-        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
-          <BlurView
-            intensity={15}
-            tint="dark"
-            style={styles.glassSection}
-          >
-            <View style={styles.glassSectionInner}>
-              {children}
-            </View>
-          </BlurView>
-        </Animated.View>
-      );
-    }
-    return (
-      <Animated.View
-        style={[styles.glassSectionFallback, { opacity: fadeAnim, transform: [{ translateY }] }]}
-      >
-        {children}
-      </Animated.View>
-    );
-  };
-
-  const renderGlassButton = (onPress: () => void, icon: string, isActive?: boolean) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
-    }, []);
-
-    if (Platform.OS === "ios") {
-      return (
-        <Animated.View style={{ opacity: fadeAnim }}>
-          <BlurView intensity={15} tint="dark" style={styles.navButtonBlur}>
-            <View
-              style={styles.navButtonInner}
-              onTouchEnd={onPress}
-            >
-              <Feather
-                name={icon as any}
-                size={20}
-                color={isActive ? "#EF4444" : "rgba(255, 255, 255, 0.9)"}
-              />
-            </View>
-          </BlurView>
-        </Animated.View>
-      );
-    }
-    return (
-      <Animated.View
-        style={[styles.navButtonFallback, { opacity: fadeAnim }]}
-        onTouchEnd={onPress}
-      >
-        <Feather
-          name={icon as any}
-          size={20}
-          color={isActive ? "#EF4444" : "rgba(255, 255, 255, 0.9)"}
-        />
-      </Animated.View>
-    );
-  };
-
   return (
     <MeshGradientBackground>
       <ScrollView
@@ -163,97 +126,52 @@ export default function DuaDetailScreen() {
         <View style={styles.navRow}>
           <GlassBackButton onPress={handleBack} />
           <View style={styles.spacer} />
-          {renderGlassButton(handleFavorite, "heart", favorite)}
+          <GlassButton onPress={handleFavorite} icon="heart" isActive={favorite} />
         </View>
 
-        {(() => {
-          const fadeAnim = useRef(new Animated.Value(0)).current;
+        <View style={styles.chipsRow}>
+          {DISPLAY_OPTIONS.map((option) => (
+            <DisplayOptionChip
+              key={option.key}
+              option={option.key}
+              label={option.label}
+              isActive={preferences.displayOptions.includes(option.key)}
+              onToggle={() => toggleDisplayOption(option.key)}
+            />
+          ))}
+        </View>
 
-          useEffect(() => {
-            Animated.timing(fadeAnim, {
-              toValue: 1,
-              duration: 400,
-              delay: 100,
-              useNativeDriver: true,
-            }).start();
-          }, []);
+        {showArabic ? (
+          <GlassSection>
+            <ThemedText style={styles.arabicText}>{dua.arabic}</ThemedText>
+          </GlassSection>
+        ) : null}
 
-          return (
-            <Animated.View style={[styles.chipsRow, { opacity: fadeAnim }]}>
-              {DISPLAY_OPTIONS.map((option) => (
-                <DisplayOptionChip
-                  key={option.key}
-                  option={option.key}
-                  label={option.label}
-                  isActive={preferences.displayOptions.includes(option.key)}
-                  onToggle={() => toggleDisplayOption(option.key)}
-                />
-              ))}
-            </Animated.View>
-          );
-        })()}
+        {showTransliteration ? (
+          <GlassSection>
+            <View style={styles.quoteBar} />
+            <ThemedText style={styles.transliterationText}>
+              {dua.transliteration[lang === "ar" ? "en" : lang] || dua.transliteration.en}
+            </ThemedText>
+          </GlassSection>
+        ) : null}
 
-        {showArabic
-          ? renderGlassSection(
-              <ThemedText style={styles.arabicText}>{dua.arabic}</ThemedText>,
-              100
-            )
-          : null}
+        {showTranslation ? (
+          <GlassSection>
+            <ThemedText style={styles.translationText}>
+              "{dua.translation[lang === "ar" ? "en" : lang] || dua.translation.en}"
+            </ThemedText>
+          </GlassSection>
+        ) : null}
 
-        {showTransliteration
-          ? renderGlassSection(
-              <>
-                <View style={styles.quoteBar} />
-                <ThemedText style={styles.transliterationText}>
-                  {dua.transliteration[lang === "ar" ? "en" : lang] || dua.transliteration.en}
-                </ThemedText>
-              </>,
-              200
-            )
-          : null}
-
-        {showTranslation
-          ? renderGlassSection(
-              <ThemedText style={styles.translationText}>
-                "{dua.translation[lang === "ar" ? "en" : lang] || dua.translation.en}"
-              </ThemedText>,
-              300
-            )
-          : null}
-
-        {dua.reference ? (() => {
-          const fadeAnim = useRef(new Animated.Value(0)).current;
-          const translateY = useRef(new Animated.Value(30)).current;
-
-          useEffect(() => {
-            Animated.parallel([
-              Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 500,
-                delay: 400,
-                useNativeDriver: true,
-              }),
-              Animated.spring(translateY, {
-                toValue: 0,
-                delay: 400,
-                useNativeDriver: true,
-              }),
-            ]).start();
-          }, []);
-
-          return (
-            <Animated.View
-              style={[styles.referenceSection, { opacity: fadeAnim, transform: [{ translateY }] }]}
-            >
-              <View style={styles.referenceBadge}>
-                <ThemedText style={styles.referenceLabel}>Reference</ThemedText>
-                <ThemedText style={styles.referenceText}>
-                  {dua.reference}
-                </ThemedText>
-              </View>
-            </Animated.View>
-          );
-        })() : null}
+        {dua.reference ? (
+          <View style={styles.referenceSection}>
+            <View style={styles.referenceBadge}>
+              <ThemedText style={styles.referenceLabel}>Reference</ThemedText>
+              <ThemedText style={styles.referenceText}>{dua.reference}</ThemedText>
+            </View>
+          </View>
+        ) : null}
       </ScrollView>
     </MeshGradientBackground>
   );
