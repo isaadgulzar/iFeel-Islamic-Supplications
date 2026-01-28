@@ -23,7 +23,7 @@ export interface Dua {
   arabic: string;
   transliteration: Transliteration;
   translation: Translation;
-  reference?: string;
+  references?: string[];
   categoryId: string;
 }
 
@@ -32,6 +32,7 @@ export interface Feeling {
   name: string;
   nameAr: string;
   icon: string;
+  emoji: string;
   colorKey: string;
 }
 

@@ -7,13 +7,11 @@ const { width, height } = Dimensions.get("window");
 interface MeshGradientBackgroundProps {
   children: ReactNode;
   style?: ViewStyle;
-  variant?: "default" | "intense";
 }
 
 export function MeshGradientBackground({
   children,
   style,
-  variant = "intense",
 }: MeshGradientBackgroundProps) {
   return (
     <View style={[styles.container, style]}>

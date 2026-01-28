@@ -164,11 +164,17 @@ export default function DuaDetailScreen() {
           </GlassSection>
         ) : null}
 
-        {dua.reference ? (
+        {dua.references && dua.references.length > 0 ? (
           <View style={styles.referenceSection}>
             <View style={styles.referenceBadge}>
-              <ThemedText style={styles.referenceLabel}>Reference</ThemedText>
-              <ThemedText style={styles.referenceText}>{dua.reference}</ThemedText>
+              <ThemedText style={styles.referenceLabel}>
+                {dua.references.length === 1 ? "Reference" : "References"}
+              </ThemedText>
+              {dua.references.map((ref, index) => (
+                <ThemedText key={index} style={styles.referenceText}>
+                  {ref}
+                </ThemedText>
+              ))}
             </View>
           </View>
         ) : null}
