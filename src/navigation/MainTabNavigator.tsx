@@ -31,7 +31,7 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="Feelings"
         component={FeelingsScreen}
-        options={{ title: "Feelings" }}
+        options={{ title: "My Feelings" }}
       />
       <Tab.Screen
         name="Collections"
