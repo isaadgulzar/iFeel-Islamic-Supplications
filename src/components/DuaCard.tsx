@@ -59,9 +59,6 @@ export function DuaCard({ dua, index, onPress }: DuaCardProps) {
     await toggleFavorite(dua.id);
   };
 
-  const truncate = (text: string, max: number) =>
-    text.length <= max ? text : text.substring(0, max) + "...";
-
   const content = (
     <View style={styles.cardInner}>
       <View style={styles.header}>
@@ -78,12 +75,12 @@ export function DuaCard({ dua, index, onPress }: DuaCardProps) {
         </Pressable>
       </View>
 
-      <ThemedText style={styles.arabicText} numberOfLines={2}>
-        {truncate(dua.arabic, 80)}
+      <ThemedText style={styles.arabicText}>
+        {dua.arabic}
       </ThemedText>
 
-      <ThemedText style={styles.translationText} numberOfLines={2}>
-        {truncate(dua.translation[lang === "ar" ? "en" : lang] || dua.translation.en, 100)}
+      <ThemedText style={styles.translationText}>
+        {dua.translation[lang === "ar" ? "en" : lang] || dua.translation.en}
       </ThemedText>
 
       {dua.reference ? (
