@@ -16,8 +16,6 @@ const springConfig = {
   useNativeDriver: true,
 };
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 interface TabItemProps {
   label: string;
   icon: string;
@@ -68,38 +66,40 @@ function TabItem({ label, icon, isFocused, onPress }: TabItemProps) {
 
   if (Platform.OS === "ios" && isFocused) {
     return (
-      <AnimatedPressable
+      <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={[styles.tabItem, animatedStyle]}
       >
-        <BlurView
-          intensity={40}
-          tint="dark"
-          style={styles.activeTabBlur}
-        >
-          <View style={styles.activeTabInner}>
-            {content}
-          </View>
-        </BlurView>
-      </AnimatedPressable>
+        <Animated.View style={[styles.tabItem, animatedStyle]}>
+          <BlurView
+            intensity={40}
+            tint="dark"
+            style={styles.activeTabBlur}
+          >
+            <View style={styles.activeTabInner}>
+              {content}
+            </View>
+          </BlurView>
+        </Animated.View>
+      </Pressable>
     );
   }
 
   return (
-    <AnimatedPressable
+    <Pressable
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[
+    >
+      <Animated.View style={[
         styles.tabItem,
         isFocused && styles.tabItemActiveFallback,
         animatedStyle,
-      ]}
-    >
-      {content}
-    </AnimatedPressable>
+      ]}>
+        {content}
+      </Animated.View>
+    </Pressable>
   );
 }
 
