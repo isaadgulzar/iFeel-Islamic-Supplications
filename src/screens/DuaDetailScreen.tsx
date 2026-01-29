@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollView, View, StyleSheet, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
@@ -15,6 +15,7 @@ import { usePreferences } from "../context/PreferencesContext";
 import { Spacing, BorderRadius } from "../constants/theme";
 import { getDuaById } from "../data/duas";
 import { DisplayOption, Language } from "../types";
+import { trackDuaRead, incrementDuasRead } from "../lib/analytics";
 
 type ScreenRouteProp = RouteProp<{ DuaDetail: { duaId: string } }, "DuaDetail">;
 
@@ -85,6 +86,14 @@ export default function DuaDetailScreen() {
   const dua = getDuaById(duaId);
   const favorite = dua ? isFavorite(dua.id) : false;
   const lang = preferences.language as Exclude<Language, "ar">;
+
+  // Track dua read on mount
+  useEffect(() => {
+    if (dua) {
+      trackDuaRead(dua.id, dua.category);
+      incrementDuasRead();
+    }
+  }, [dua?.id]);
 
   const handleBack = () => {
     navigation.goBack();

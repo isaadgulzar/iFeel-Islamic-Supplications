@@ -22,15 +22,11 @@ export function MeshGradientBackground({
       <View style={[styles.glowOrb, styles.orb3]} />
       <View style={[styles.glowOrb, styles.orb4]} />
 
-      {Platform.OS === "ios" ? (
-        <BlurView
-          intensity={60}
-          tint="dark"
-          style={styles.blurOverlay}
-        />
-      ) : (
-        <View style={styles.webOverlay} />
-      )}
+      <BlurView
+        intensity={90}
+        tint="dark"
+        style={styles.blurOverlay}
+      />
 
       {children}
     </View>
@@ -144,9 +140,5 @@ const styles = StyleSheet.create({
   },
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
-  },
-  webOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(10, 26, 31, 0.3)",
   },
 });

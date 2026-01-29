@@ -20,6 +20,7 @@ import { Spacing, BorderRadius, FeelingColors } from "../constants/theme";
 import { FEELINGS } from "../data/feelings";
 import { getDuasByCategory } from "../data/duas";
 import type { Feeling } from "../types";
+import { trackSearchPerformed, trackCategoryViewed } from "../lib/analytics";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -266,9 +267,14 @@ export default function FeelingsScreen() {
       return FEELINGS;
     }
     const query = searchQuery.toLowerCase();
-    return FEELINGS.filter((feeling) =>
+    const results = FEELINGS.filter((feeling) =>
       feeling.name.toLowerCase().includes(query)
     );
+
+    // Track search performed
+    trackSearchPerformed(query, results.length);
+
+    return results;
   }, [searchQuery]);
 
   const feelingsWithDuas = useMemo(() => {
@@ -281,6 +287,7 @@ export default function FeelingsScreen() {
   const handleFeelingPress = useCallback(
     (feelingId: string) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      trackCategoryViewed(feelingId);
       navigation.navigate("DuaCategory", { feelingId });
     },
     [navigation]
