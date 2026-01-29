@@ -1,5 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserPreferences, DEFAULT_PREFERENCES } from "../types";
+import {
+  trackFavoriteAdded,
+  trackFavoriteRemoved,
+  incrementFavoriteCount,
+  decrementFavoriteCount,
+} from "./analytics";
+import { getDuaById } from "../data/duas";
 
 const PREFERENCES_KEY = "@sukoon_preferences";
 
@@ -37,11 +44,20 @@ export async function updatePreference<K extends keyof UserPreferences>(
 export async function toggleFavorite(duaId: string): Promise<boolean> {
   const prefs = await getPreferences();
   const isFavorite = prefs.favorites.includes(duaId);
+  const dua = getDuaById(duaId);
 
   if (isFavorite) {
     prefs.favorites = prefs.favorites.filter((id) => id !== duaId);
+    await decrementFavoriteCount();
+    if (dua) {
+      await trackFavoriteRemoved(duaId, dua.category);
+    }
   } else {
     prefs.favorites = [...prefs.favorites, duaId];
+    await incrementFavoriteCount();
+    if (dua) {
+      await trackFavoriteAdded(duaId, dua.category);
+    }
   }
 
   await savePreferences(prefs);
