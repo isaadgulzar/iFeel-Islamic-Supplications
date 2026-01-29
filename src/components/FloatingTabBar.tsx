@@ -112,7 +112,6 @@ function TabItem({ label, icon, isFocused, onPress }: TabItemProps) {
 
 const TAB_ICONS: Record<string, string> = {
   Feelings: "heart",
-  Collections: "folder",
   Favorites: "bookmark",
   Settings: "settings",
 };

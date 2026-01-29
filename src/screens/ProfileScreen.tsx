@@ -1,8 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Linking, Image, Platform, Pressable, ScrollView, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { BlurView } from "expo-blur";
 import { Feather } from "@expo/vector-icons";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "../components/ThemedText";
 import { MeshGradientBackground } from "../components/MeshGradientBackground";
@@ -13,6 +17,8 @@ import { usePreferences } from "../context/PreferencesContext";
 import { Spacing, BorderRadius } from "../constants/theme";
 import { DisplayOption, Language } from "../types";
 
+type NavigationProp = NativeStackNavigationProp<any>;
+
 const DISPLAY_OPTIONS: { key: DisplayOption; label: string }[] = [
   { key: "arabic", label: "Arabic" },
   { key: "transliteration", label: "Transliteration" },
@@ -21,6 +27,7 @@ const DISPLAY_OPTIONS: { key: DisplayOption; label: string }[] = [
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
   const { preferences, setLanguage, toggleDisplayOption } = usePreferences();
 
@@ -65,18 +72,32 @@ export default function ProfileScreen() {
     );
   };
 
+  const swipeGesture = Gesture.Pan()
+    .onEnd((event) => {
+      const SWIPE_THRESHOLD = 50;
+      if (Math.abs(event.velocityX) > 500 || Math.abs(event.translationX) > SWIPE_THRESHOLD) {
+        if (event.translationX > 0) {
+          // Swipe right - go to previous tab (Feelings)
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          navigation.navigate("Feelings" as never);
+        }
+        // No swipe left action since Settings is the rightmost tab
+      }
+    });
+
   return (
-    <MeshGradientBackground>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: insets.top + Spacing.lg,
-            paddingBottom: 120,
-          },
-        ]}
-      >
+    <GestureDetector gesture={swipeGesture}>
+      <MeshGradientBackground>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingTop: insets.top + Spacing.lg,
+              paddingBottom: 120,
+            },
+          ]}
+        >
         <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY }] }]}>
           <ThemedText style={styles.title}>Settings</ThemedText>
         </Animated.View>
@@ -144,8 +165,9 @@ export default function ProfileScreen() {
           <ThemedText style={styles.footerText}>iFeel v1.0.0</ThemedText>
           <ThemedText style={styles.footerText}>Made with love for the Ummah</ThemedText>
         </Animated.View>
-      </ScrollView>
-    </MeshGradientBackground>
+        </ScrollView>
+      </MeshGradientBackground>
+    </GestureDetector>
   );
 }
 
@@ -158,12 +180,13 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: Spacing.xl,
-    paddingTop: Spacing.md,
   },
   title: {
     fontSize: 32,
     fontWeight: "700",
     color: "#FFFFFF",
+    lineHeight: 40,
+    paddingTop: 4,
   },
   logoSection: {
     alignItems: "center",
