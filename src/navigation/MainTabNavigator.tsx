@@ -2,16 +2,14 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import FeelingsScreen from "../screens/FeelingsScreen";
-import CollectionsScreen from "../screens/CollectionsScreen";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import { FloatingTabBar } from "../components/FloatingTabBar";
 import { useScreenOptions } from "../hooks/useScreenOptions";
 
 export type MainTabParamList = {
-  Feelings: undefined;
-  Collections: undefined;
   Favorites: undefined;
+  Feelings: undefined;
   Settings: undefined;
 };
 
@@ -27,21 +25,17 @@ export function MainTabNavigator() {
         headerShown: false,
       }}
       tabBar={(props) => <FloatingTabBar {...props} />}
+      initialRouteName="Feelings"
     >
-      <Tab.Screen
-        name="Feelings"
-        component={FeelingsScreen}
-        options={{ title: "My Feelings" }}
-      />
-      <Tab.Screen
-        name="Collections"
-        component={CollectionsScreen}
-        options={{ title: "Collections" }}
-      />
       <Tab.Screen
         name="Favorites"
         component={FavoritesScreen}
         options={{ title: "Favorites" }}
+      />
+      <Tab.Screen
+        name="Feelings"
+        component={FeelingsScreen}
+        options={{ title: "Feelings" }}
       />
       <Tab.Screen
         name="Settings"

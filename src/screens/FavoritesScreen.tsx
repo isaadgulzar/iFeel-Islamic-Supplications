@@ -3,6 +3,8 @@ import { FlatList, View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import * as Haptics from "expo-haptics";
 
 import { DuaCard } from "../components/DuaCard";
 import { MeshGradientBackground } from "../components/MeshGradientBackground";
@@ -50,31 +52,46 @@ export default function FavoritesScreen() {
     <DuaItem dua={item} index={index} onPress={() => handleDuaPress(item.id)} />
   );
 
-  return (
-    <MeshGradientBackground>
-      <FlatList
-        data={favoriteDuas}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[
-          styles.list,
-          {
-            paddingTop: insets.top + Spacing.lg,
-            paddingBottom: 120,
-            flexGrow: favoriteDuas.length === 0 ? 1 : undefined,
-          },
-        ]}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={ListHeader}
-        ListEmptyComponent={
-          <EmptyState
-            image={require("../../assets/icon.png")}
-            title="No favorites yet"
-            message="Tap the heart icon on any dua to save it here for quick access."
-          />
+  const swipeGesture = Gesture.Pan()
+    .onEnd((event) => {
+      const SWIPE_THRESHOLD = 50;
+      if (Math.abs(event.velocityX) > 500 || Math.abs(event.translationX) > SWIPE_THRESHOLD) {
+        if (event.translationX < 0) {
+          // Swipe left - go to next tab (Feelings)
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          navigation.navigate("Feelings" as never);
         }
-      />
-    </MeshGradientBackground>
+        // No swipe right action since Favorites is the leftmost tab
+      }
+    });
+
+  return (
+    <GestureDetector gesture={swipeGesture}>
+      <MeshGradientBackground>
+        <FlatList
+          data={favoriteDuas}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[
+            styles.list,
+            {
+              paddingTop: insets.top + Spacing.lg,
+              paddingBottom: 120,
+              flexGrow: favoriteDuas.length === 0 ? 1 : undefined,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={ListHeader}
+          ListEmptyComponent={
+            <EmptyState
+              image={require("../../assets/icon.png")}
+              title="No favorites yet"
+              message="Tap the heart icon on any dua to save it here for quick access."
+            />
+          }
+        />
+      </MeshGradientBackground>
+    </GestureDetector>
   );
 }
 
@@ -84,13 +101,14 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: Spacing.xl,
-    paddingTop: Spacing.md,
   },
   title: {
     fontSize: 32,
     fontWeight: "700",
     color: "#FFFFFF",
     marginBottom: Spacing.xs,
+    lineHeight: 40,
+    paddingTop: 4,
   },
   subtitle: {
     fontSize: 14,
